@@ -1,0 +1,46 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+		<title> CS430 Homework 1</title>
+	<script src="h1_files/page-script.js" id="bw-fido2-page-script"></script></head>
+	<body>
+		<h3> CS430 Homework 1:  Linux Kernel Scavanger Hunt </h3>
+		<h4> Due Monday, January 29, by the end of the day </h4>
+
+		The Linux kernel source code is available from kernel.org, or on 
+isoptera in /usr/src.  It's also available online.  For CS430, you will 
+have to become somewhat familiar with this code, with the goal of 
+understanding how to program inside an operating system.<br>
+
+		For this week, do a scavanger hunt, where you must find the following:<br>
+		<ul>
+			<li> 5 places where a function pointer stored in a struct member.  
+example:  fs/btrfs/export.c lines 276-282.  These must all be in 
+different structure instances, but more than one may be from the same 
+type of struct.</li>
+			<li> 5 places where a function pointer stored in a struct is used to call a function.  example:  fs/exportfs/expfs.c line 391 </li>
+			<li> 5 places where a bitwise operator is used.  example:  arch/x86/pci/common.c line 626</li>
+			<li> An amusing comment.  "Amusing" here is highly subjective, and 
+you will receive full credit even if I personally am not amused.  
+example:  drivers/power/supply/da9052-battery.c lines 345-347 </li>
+		</ul>
+
+		The above examples refer to the source code on /usr/src/linux-source-5.10 on isoptera.  This is <i>probably</i>
+ the same as the generic Linux 5.10 source code.  In some cases, Linux 
+distributions use modified kernel source code, especially when 
+specialized.  Generally Linux distributions contain a mechanism to 
+obtain the same source code used for the (binary) kernel.  For Debian 
+and Ubuntu, It's provided as a package called "linux-source", and this 
+is how the source code on isoptera was obtained.  I might have updated 
+the kernel on isoptera to a 6-series kernel by the time you do this 
+assignment, in which case I'll try to remember to update the references 
+above.<br>
+		Extensive modification is more likely on distributions such as SteamOS
+ or Android, which have a specific purpose other than general computing.<br>
+
+		<h4> Turning in the assignment </h4>
+
+	Upload a file to the "course work uploads" explaining where you found the above items.
+
+	
+
+</body></html>

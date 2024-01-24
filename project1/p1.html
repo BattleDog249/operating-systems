@@ -1,0 +1,28 @@
+<html>
+	<head>
+		<title>CS430 Project 1</title>
+	</head>
+	<body>
+		<h1>CS430 Project 1:  C Programming</h1>
+
+		The goal of this assignment is to practice C programming of the sort that is common in operating systems.  This project will require use of pointers including function pointers, dynamic memory, and manipulation of bits using shifts.  Four files are provided:
+<ul>
+	<li> tester.h is a header file which defines a "bundle", a combination of three functions each with a specific purpose.</li>
+	<li> tester.c contains a function definition for "test", which will test to see if your bundle functions correctly.</li>
+	<li> solution.c contains the main function for the program, and very little else.  It is your job to finish this file. </li>
+	<li> Makefile will allow you to build the project on a Unix-like system by typing "make" in the correct directory. </li>
+</ul>
+
+	In order to complete solution.c, define functions for each member of the bundle struct.  Then create a bundle struct in the main function, and call the test function giving it a reference to your bundle struct as a parameter.  The test function will call each of the functions referred to in the bundle.  Messages will be printed by the test function indicating success or failure.  Don't modify the test function, but it's a good idea to read through it and understand how the test proceeds.<br>
+
+	A valid bundle contains references to three functions:
+	<ul>
+		<li> find_best takes three parameters.  The first is a list of functions, the second is a parameter for calling functions from the list, and the third is the number of functions in the list.  find_best should call each function in turn, passing the parameter to each function, and return the number of the function in the list which returns the highest value.  Function numbers are the position of each function pointer in the array (the first function is number 0, the next is 1, etc).  </li>
+		<li> sorted_copy takes two parameters, an array of integers and a number indicating the length of the array.  This function should make a copy of the array, sort the copy, and return a pointer to the sorted copy.  The copy should be on the heap, not the stack (placing the array on the stack will cause memory errors).</li>
+		<li> combine takes two parameters, both integers, and combines them plus performs some transformations on the result.  Combination is by bitwise OR.  The sequence to follow is:  Combine the numbers by bitwise OR, then shift the bits three places right, then change the last byte to all 0's.</li>
+	</ul>
+
+	Grading will be based on the degree to which your solution passes the tests in the test function.  Each function is worth 1/3 of the assignment points.  Full credit will be awarded if your solution passes all tests and works as described above.  <br>
+	The files you will need are contained in a .zip archive in the class examples area, or <a href="examples/p1.zip">here</a>.  On Unix-like systems, download the zip file, unpack it using the "unzip" command (unzip p1.zip), enter the "p1" directory, and you can build the program by typing "make".  Alternatively, the project will compile with "gcc -std=c99 solution.c tester.c".  The project has not been tested in Visual Studio, but will probably work.  
+	</body>
+</html>
