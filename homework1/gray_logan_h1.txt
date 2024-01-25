@@ -11,17 +11,22 @@ CS-430-01
     3.
     4.
     5.
+
 5 places where a function pointer stored in a struct is used to call a function
-    1.
+    grep -rP "\w+->\w+\s*\(" /usr/src/linux
+    1. /usr/src/linux/net/mac80211/driver-ops.h:               local->ops->sta_set_4addr(&local->hw, &sdata->vif, sta, enabled);
     2.
     3.
     4.
     5.
+
 5 places where a bitwise operator is used
-    1.
-    2.
-    3.
-    4.
-    5.
+    Command used: grep -rE "\w+\s*[&|^|<<|>>|~]\s*\w+" /usr/src/linux/
+    1. /usr/src/linux/include/net/red.h:       return !(((qavg - p->qth_min) >> p->Wlog) * v->qcount < v->qR);
+    2. /usr/src/linux/include/uapi/linux/futex.h:   | ((oparg & 0xfff) << 12) | (cmparg & 0xfff))
+    3. /usr/src/linux/include/media/rc-core.h: if ((command ^ not_command) != 0xff) {
+    4. /usr/src/linux/include/crypto/b128ops.h:        r->a = p->a ^ q->a;
+    5. /usr/src/linux/net/mac80211/ieee80211_i.h:      return !!(status->flag & (RX_FLAG_MACTIME_START | RX_FLAG_MACTIME_END |
+
 An amusing comment
     1.
