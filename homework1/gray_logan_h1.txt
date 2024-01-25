@@ -29,4 +29,5 @@ CS-430-01
     5. /usr/src/linux/net/mac80211/ieee80211_i.h:      return !!(status->flag & (RX_FLAG_MACTIME_START | RX_FLAG_MACTIME_END |
 
 An amusing comment
-    1.
+    grep -r "brave" /usr/src/linux
+    1. /usr/src/linux/include/linux/skbuff.h:  /* Unfortunately we don't support this one.  Any brave souls? */
