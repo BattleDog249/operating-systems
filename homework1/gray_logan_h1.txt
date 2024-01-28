@@ -3,22 +3,32 @@ CS430 Homework 1: Linux Kernel Scavanger Hunt
 Logan Hunter Gray
 Professor Seth Long
 CS-430-01
-25 January 2024
+29 January 2024
 
 5 places where a function pointer stored in a struct member
-    1.
-    2.
-    3.
-    4.
-    5.
+    I found these by manually looking through filesystem files, looking for function pointers stored in a struct member, and all of these were located at the end of their respective files.
+    1. /home/logan/linux/fs/btrfs/file.c:   const struct file_operations btrfs_file_operations = {
+	                                            .llseek		= btrfs_file_llseek, ...
+    2. /home/logan/linux/fs/ext4/crypto.c:  const struct fscrypt_operations ext4_cryptops = {
+	                                            .needs_bounce_pages	= 1,
+	                                            .has_32bit_inodes	= 1,
+	                                            .supports_subblock_data_units = 1,
+	                                            .legacy_key_prefix	= "ext4:",
+	                                            .get_context		= ext4_get_context, ...
+    3. /home/logan/linux/fs/bcachefs/quota.c:   const struct quotactl_ops bch2_quotactl_operations = {
+	                                                .quota_enable		= bch2_quota_enable, ...
+    4. /home/logan/linux/fs/orangefs/namei.c:   const struct inode_operations orangefs_dir_inode_operations = {
+	                                                .lookup = orangefs_lookup, ...
+    5. /home/logan/linux/fs/kernfs/inode.c: static const struct xattr_handler kernfs_trusted_xattr_handler = {
+	                                            .prefix = XATTR_TRUSTED_PREFIX, ...
 
 5 places where a function pointer stored in a struct is used to call a function
-    grep -rP "\w+->\w+\s*\(" /usr/src/linux
-    1. /usr/src/linux/net/mac80211/driver-ops.h:               local->ops->sta_set_4addr(&local->hw, &sdata->vif, sta, enabled);
-    2.
-    3.
-    4.
-    5.
+    Command used: grep -rP "\w+->\w+\s*\(" /home/logan/linux
+    1. /home/logan/linux/net/mac80211/driver-ops.h:               local->ops->sta_set_4addr(&local->hw, &sdata->vif, sta, enabled);
+    2. /home/logan/linux/tools/testing/selftests/kvm/lib/aarch64/gic.c:        return gic_common_ops->gic_irq_get_pending(intid);
+    3. /home/logan/linux/tools/power/x86/intel-speed-select/isst-core.c:       return isst_ops->get_ctdp_control(id, config_index, ctdp_level);
+    4. /home/logan/linux/tools/perf/util/annotate.c:           err = arch->init(arch, env ? env->cpuid : NULL);
+    5. /home/logan/linux/sound/soc/sof/topology.c:             return tplg_ops->parse_manifest(scomp, index, man);
 
 5 places where a bitwise operator is used
     Command used: grep -rE "\w+\s*[&|^|<<|>>|~]\s*\w+" /usr/src/linux/
