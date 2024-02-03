@@ -1,4 +1,3 @@
-/* This one is for you to finish!  Have fun! */
 #include "tester.h" // Include the header file for the test function and the bundle struct definition
 #include <stdlib.h>
 #include <string.h>
