@@ -24,7 +24,7 @@ int find_best(int (*func_list[])(int), int param, int list_size) {
 }
 
 // Create a sorted copy of the input array using qsort
-int* sorted_copy(int* array, int length) {
+int* sorted_copy(int* array, size_t length) {
     int* copy = malloc(length * sizeof(int)); // Allocate memory for the new array
     if (copy == NULL) { // Check if malloc failed
         exit(1);
