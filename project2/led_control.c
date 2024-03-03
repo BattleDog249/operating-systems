@@ -57,8 +57,8 @@ static ssize_t proc_write(struct file *file, const char __user *buffer, size_t c
     return count;
 }
 
-static struct file_operations proc_fops = {
-    .write = proc_write,
+struct proc_ops proc_fops = {
+    proc_write: proc_write,
 };
 
 // Function to initialize the module and create the /proc file
