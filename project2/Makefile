@@ -1,4 +1,4 @@
-obj-m += led_control.o
+obj-m += kbledcontrol.o
 
 all:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
