@@ -96,4 +96,4 @@ module_exit(kbledcontrol_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Logan Gray");
-MODULE_DESCRIPTION("Control keyboard LEDs via /proc file.");
+MODULE_DESCRIPTION("Control keyboard LEDs via /proc file. L[0-7] to set LED pattern, D[0-9] to set blink delay.");
