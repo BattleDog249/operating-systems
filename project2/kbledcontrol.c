@@ -3,11 +3,15 @@
 #include <linux/proc_fs.h>          // Needed for the proc file system
 #include <linux/uaccess.h>          // Needed for copy_from_user
 #include <linux/timer.h>            // Needed for the timer
-#include <linux/tty.h>              // Needed for the tty driver
-#include <linux/kd.h>               // Needed for the keyboard LED definitions
+#include <linux/tty.h>              // Needed for the tty driver and fg_console
+#include <linux/kd.h>               // Needed for KDSETLED and other keyboard definitions
 #include <linux/vt_kern.h>          // Needed for the console definitions
 #include <linux/init.h>             // Needed for the module initialization and cleanup
-#include <linux/console_struct.h>   // Needed for the console definitions
+#include <linux/console_struct.h>   // Needed for the console definitions (vc_cons)
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Logan Gray");
+MODULE_DESCRIPTION("Control keyboard LEDs via /proc file. L[0-7] to set LED pattern, D[0-9] to set blink delay.");
 
 // Define the module information
 #define PROC_FILENAME "kbledcontrol"
@@ -19,14 +23,14 @@ static struct proc_dir_entry* proc_file;
 static struct timer_list blink_timer;
 static unsigned int blink_delay = DEFAULT_BLINK_DELAY;
 static char leds_on = DEFAULT_LEDS_ON;
-static struct tty_driver* my_driver;
+static struct tty_driver* blink_driver;
 static char kbledstatus = 0;
 
 // Function to update the LED pattern
 static void blink_timer_func(struct timer_list *t)
 {
     kbledstatus = (kbledstatus == leds_on) ? 0 : leds_on;
-    (my_driver->ops->ioctl)(vc_cons[fg_console].d->port.tty, KDSETLED, kbledstatus);
+    (blink_driver->ops->ioctl)(vc_cons[fg_console].d->port.tty, KDSETLED, kbledstatus);
     mod_timer(&blink_timer, jiffies + blink_delay);
 }
 
@@ -71,7 +75,7 @@ static struct proc_ops proc_fops = {
 static int __init kbledcontrol_init(void)
 {
     printk(KERN_INFO "kbledcontrol: Loading module");
-    my_driver = vc_cons[fg_console].d->port.tty->driver; // Get the tty driver from the console
+    blink_driver = vc_cons[fg_console].d->port.tty->driver; // Get the tty driver from the console
     proc_file = proc_create(PROC_FILENAME, 0666, NULL, &proc_fops); // Create the /proc file
     if (!proc_file) return -ENOMEM; // Return error if file creation fails
 
@@ -87,13 +91,9 @@ static void __exit kbledcontrol_exit(void)
 {
     printk(KERN_INFO "kbledcontrol: Unloading module");
     del_timer(&blink_timer); // Delete the timer
-    (my_driver->ops->ioctl)(vc_cons[fg_console].d->port.tty, KDSETLED, 0); // Turn off LEDs
+    (blink_driver->ops->ioctl)(vc_cons[fg_console].d->port.tty, KDSETLED, 0); // Turn off LEDs
     remove_proc_entry(PROC_FILENAME, NULL); // Remove the /proc file
 }
 
 module_init(kbledcontrol_init);
 module_exit(kbledcontrol_exit);
-
-MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Logan Gray");
-MODULE_DESCRIPTION("Control keyboard LEDs via /proc file. L[0-7] to set LED pattern, D[0-9] to set blink delay.");
