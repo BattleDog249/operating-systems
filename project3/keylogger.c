@@ -99,19 +99,6 @@ char convert_keycode_to_char(int keycode) {
 }
 */
 
-// Keyboard notifier function
-static int keyboard_notifier_fn(struct notifier_block *nb, unsigned long action, void *data) {
-    struct keyboard_notifier_param *param = data;
-
-    // Only log key-down events
-    if (action == KBD_KEYCODE && param->down) {
-        // TODO: Implement logic to store the keystroke in the red-black tree
-        printk(KERN_INFO "Keycode %d %s\n", param->value, param->down ? "down" : "up");
-    }
-
-    return NOTIFY_OK;
-}
-
 static struct notifier_block keyboard_nb = {
     .notifier_call = keyboard_notifier_fn
 };
