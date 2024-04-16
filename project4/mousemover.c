@@ -5,6 +5,9 @@
 #include <linux/notifier.h> // Required for notifier_block, notifier_call, NOTIFY_OK
 #include <linux/keyboard.h> // Required for keyboard_notifier_param, KBD_KEYCODE, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_SPACE
 
+#include <linux/input.h> // Required for input_allocate_device, input_set_abs_params
+#include <linux/uinput.h> // Required for UI_DEV_CREATE, UI_DEV_DESTROY
+
 static int keyboard_notifier(struct notifier_block *nblock, unsigned long code, void *_param)
 {
 	struct keyboard_notifier_param *param = _param;
@@ -13,7 +16,7 @@ static int keyboard_notifier(struct notifier_block *nblock, unsigned long code, 
 	if (code == KBD_KEYCODE) {
 		// Check for arrow key press
 		if (param->value == KEY_UP) {
-            		// Move mouse cursor up
+			// Move mouse cursor up
 			input_report_rel(input_dev, REL_Y, -1);
 			input_sync(input_dev);
 		} else if (param->value == KEY_DOWN) {
@@ -29,7 +32,7 @@ static int keyboard_notifier(struct notifier_block *nblock, unsigned long code, 
 			input_report_rel(input_dev, REL_X, 1);
 			input_sync(input_dev);
 		}
-        	// Check for space key press
+		// Check for space key press
 		else if (param->value == KEY_SPACE) {
 			// Report left mouse button press
 			input_report_key(input_dev, BTN_LEFT, 1);
