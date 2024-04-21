@@ -33,9 +33,9 @@ static int keyboard_notifier(struct notifier_block *nblock, unsigned long code, 
 		}
 		// Check for space key press
 		else if (param->value == KEY_SPACE) {
-			// Report left mouse button press
-			input_report_key(input_dev, BTN_LEFT, 1);
-			input_sync(input_dev);
+			// Report left mouse button press or release
+            input_report_key(input_dev, BTN_LEFT, param->down);
+            input_sync(input_dev);
 		}
 	}
 
@@ -53,7 +53,7 @@ static int __init init_mousemover(void)
 	// Allocate a new input device
     input_dev = input_allocate_device();
     if (!input_dev) {
-        printk(KERN_ERR "Failed to allocate input device\n");
+        printk(KERN_ERR "mousemover: Failed to allocate input device\n");
         return -ENOMEM;
     }
 
@@ -69,14 +69,14 @@ static int __init init_mousemover(void)
     // Register the input device
     error = input_register_device(input_dev);
     if (error) {
-        printk(KERN_ERR "Failed to register input device\n");
+        printk(KERN_ERR "mousemover: Failed to register input device\n");
         input_free_device(input_dev);
         return error;
     }
 
 	// Register the keyboard notifier
 	register_keyboard_notifier(&keyboard_nb);
-	printk(KERN_INFO "Mouse mover module initialized\n");
+	printk(KERN_INFO "mousemover: Module initialized\n");
 	return 0;
 }
 
@@ -84,7 +84,7 @@ static void __exit exit_mousemover(void)
 {
 	unregister_keyboard_notifier(&keyboard_nb);
 	input_unregister_device(input_dev);
-	printk(KERN_INFO "Mouse mover module removed\n");
+	printk(KERN_INFO "mousemover: Module removed\n");
 }
 
 module_init(init_mousemover);
