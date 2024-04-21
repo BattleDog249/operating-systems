@@ -34,8 +34,8 @@ static int keyboard_notifier(struct notifier_block *nblock, unsigned long code, 
 		// Check for space key press
 		else if (param->value == KEY_SPACE) {
 			// Report left mouse button press or release
-            input_report_key(input_dev, BTN_LEFT, param->down);
-            input_sync(input_dev);
+			input_report_key(input_dev, BTN_LEFT, param->down);
+			input_sync(input_dev);
 		}
 	}
 
@@ -51,28 +51,28 @@ static int __init init_mousemover(void)
 	int error;
 
 	// Allocate a new input device
-    input_dev = input_allocate_device();
-    if (!input_dev) {
-        printk(KERN_ERR "mousemover: Failed to allocate input device\n");
-        return -ENOMEM;
-    }
+	input_dev = input_allocate_device();
+	if (!input_dev) {
+		printk(KERN_ERR "mousemover: Failed to allocate input device\n");
+		return -ENOMEM;
+	}
 
-    // Set the name and physical location of the device
-    input_dev->name = "Virtual Mouse";
-    input_dev->phys = "vmouse/input0";
+	// Set the name and physical location of the device
+	input_dev->name = "Virtual Mouse";
+	input_dev->phys = "vmouse/input0";
 
-    // Set the type of events that this device can generate
-    input_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REL);
-    input_dev->keybit[BIT_WORD(BTN_MOUSE)] = BIT_MASK(BTN_LEFT) | BIT_MASK(BTN_MIDDLE) | BIT_MASK(BTN_RIGHT);
-    input_dev->relbit[0] = BIT_MASK(REL_X) | BIT_MASK(REL_Y);
+	// Set the type of events that this device can generate
+	input_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REL);
+	input_dev->keybit[BIT_WORD(BTN_MOUSE)] = BIT_MASK(BTN_LEFT) | BIT_MASK(BTN_MIDDLE) | BIT_MASK(BTN_RIGHT);
+	input_dev->relbit[0] = BIT_MASK(REL_X) | BIT_MASK(REL_Y);
 
-    // Register the input device
-    error = input_register_device(input_dev);
-    if (error) {
-        printk(KERN_ERR "mousemover: Failed to register input device\n");
-        input_free_device(input_dev);
-        return error;
-    }
+	// Register the input device
+	error = input_register_device(input_dev);
+	if (error) {
+		printk(KERN_ERR "mousemover: Failed to register input device\n");
+		input_free_device(input_dev);
+		return error;
+	}
 
 	// Register the keyboard notifier
 	register_keyboard_notifier(&keyboard_nb);
