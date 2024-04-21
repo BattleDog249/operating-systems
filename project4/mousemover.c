@@ -92,4 +92,4 @@ module_exit(exit_mousemover);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Logan Hunter Gray <lgray@proton.me>");
-MODULE_DESCRIPTION("A kernel module that moves the mouse cursor based on keyboard input");
+MODULE_DESCRIPTION("A kernel module that allows the user to move the mouse cursor using the arrow keys and press the left mouse button using the space key.");
