@@ -66,7 +66,7 @@ static unsigned int main_hook(void *priv, struct sk_buff *skb, const struct nf_h
 }
 
 static ssize_t read_proc(struct file *file, char __user *ubuf, size_t count, loff_t *ppos) {
-	printk(KERN_INFO "netmon: Reading /proc file\n")
+	printk(KERN_INFO "netmon: Reading /proc file\n");
     int len = 0;
     char buf[256];
     struct rb_node *node;
@@ -108,7 +108,7 @@ static int __init init_netmon(void) {
 }
 
 static void __exit exit_netmon(void) {
-	printk(KERN_INFO "netmon: Unloading module\n")
+	printk(KERN_INFO "netmon: Unloading module\n");
     struct rb_node *node;
     struct ip_node *data;
 
