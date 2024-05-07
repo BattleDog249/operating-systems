@@ -8,8 +8,10 @@
 #include <linux/rbtree.h> // Required for Red-Black Trees
 #include <linux/slab.h> // Required for kmalloc, kfree
 
+#define PROC_FILENAME "ip_traffic"
+
 static struct nf_hook_ops netfilter_ops_in;
-static struct proc_dir_entry *proc_entry;
+static struct proc_dir_entry *proc_file;
 struct rb_root ip_tree = RB_ROOT;
 
 struct ip_node {
@@ -19,6 +21,7 @@ struct ip_node {
 };
 
 static void ip_tree_insert(u32 ip_addr) {
+	printk(KERN_INFO "netmon: ip_tree_insert() called\n");
     struct ip_node *data, *tmp;
     struct rb_node **new = &(ip_tree.rb_node), *parent = NULL;
 
@@ -50,6 +53,7 @@ static void ip_tree_insert(u32 ip_addr) {
 }
 
 static unsigned int main_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *state) {
+	printk(KERN_INFO "netmon: main_hook() called\n");
     struct iphdr *ip;
 
     if (!skb)
@@ -62,6 +66,7 @@ static unsigned int main_hook(void *priv, struct sk_buff *skb, const struct nf_h
 }
 
 static ssize_t read_proc(struct file *file, char __user *ubuf, size_t count, loff_t *ppos) {
+	printk(KERN_INFO "netmon: Reading /proc file\n")
     int len = 0;
     char buf[256];
     struct rb_node *node;
@@ -89,23 +94,26 @@ static struct proc_ops netmon_proc_ops = {
 };
 
 static int __init init_netmon(void) {
+	printk(KERN_INFO "netmon: Loading module\n");
     netfilter_ops_in.hook = main_hook;
     netfilter_ops_in.hooknum = NF_INET_PRE_ROUTING;
     netfilter_ops_in.pf = PF_INET;
     netfilter_ops_in.priority = NF_IP_PRI_FIRST;
 
     nf_register_net_hook(&init_net, &netfilter_ops_in);
-    proc_entry = proc_create("ip_traffic", 0666, NULL, &netmon_proc_ops);
+    proc_file = proc_create(PROC_FILENAME, 0666, NULL, &netmon_proc_ops);
+	if (!proc_file) return -ENOMEM; // Return error if file creation fails
 
     return 0;
 }
 
 static void __exit exit_netmon(void) {
+	printk(KERN_INFO "netmon: Unloading module\n")
     struct rb_node *node;
     struct ip_node *data;
 
     nf_unregister_net_hook(&init_net, &netfilter_ops_in);
-    proc_remove(proc_entry);
+    remove_proc_entry(PROC_FILENAME, NULL); // Remove the /proc file
 
     for (node = rb_first(&ip_tree); node != NULL; node = rb_next(node)) {
         data = rb_entry(node, struct ip_node, node);
