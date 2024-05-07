@@ -1,53 +1,122 @@
-#include <linux/module.h>
-#include <linux/init.h>
-#include <linux/ip.h>
-#include <linux/skbuff.h>
+#include <linux/module.h> // Required for all kernel modules
+#include <linux/kernel.h> // Required for printk, KERN_INFO, KERN_ERR
+#include <linux/init.h> // Required for __init and __exit macros
 #include <linux/netfilter.h>
-#include <linux/inet.h>
-#include <linux/socket.h>
+#include <linux/netfilter_ipv4.h>
+#include <linux/ip.h> // Required for iphdr
+#include <linux/proc_fs.h> // Required for the proc file system
+#include <linux/rbtree.h> // Required for Red-Black Trees
+#include <linux/slab.h> // Required for kmalloc, kfree
+
+static struct nf_hook_ops netfilter_ops_in;
+static struct proc_dir_entry *proc_entry;
+struct rb_root ip_tree = RB_ROOT;
+
+struct ip_node {
+    struct rb_node node;
+    u32 ip_addr;
+    int count;
+};
+
+static void ip_tree_insert(u32 ip_addr) {
+    struct ip_node *data, *tmp;
+    struct rb_node **new = &(ip_tree.rb_node), *parent = NULL;
+
+    while (*new) {
+        parent = *new;
+        tmp = container_of(*new, struct ip_node, node);
+
+        if (ip_addr < tmp->ip_addr)
+            new = &((*new)->rb_left);
+        else if (ip_addr > tmp->ip_addr)
+            new = &((*new)->rb_right);
+        else {
+            tmp->count++;
+            return;
+        }
+    }
+
+    data = kmalloc(sizeof(struct ip_node), GFP_KERNEL);
+    if (!data) {
+        printk(KERN_ERR "Unable to allocate IP node.\n");
+        return;
+    }
+
+    data->ip_addr = ip_addr;
+    data->count = 1;
+
+    rb_link_node(&data->node, parent, new);
+    rb_insert_color(&data->node, &ip_tree);
+}
+
+static unsigned int main_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *state) {
+    struct iphdr *ip;
+
+    if (!skb)
+        return NF_ACCEPT;
+
+    ip = ip_hdr(skb);
+    ip_tree_insert(ntohl(ip->saddr));
+
+    return NF_ACCEPT;
+}
+
+static ssize_t read_proc(struct file *file, char __user *ubuf, size_t count, loff_t *ppos) {
+    int len = 0;
+    char buf[256];
+    struct rb_node *node;
+    struct ip_node *data;
+
+    for (node = rb_first(&ip_tree); node; node = rb_next(node)) {
+        data = rb_entry(node, struct ip_node, node);
+        len += snprintf(buf + len, sizeof(buf) - len, "%pI4 - %d\n", &data->ip_addr, data->count);
+        if (len > count)
+            break;
+    }
+
+    if (*ppos > 0 || len == 0)
+        return 0;
+
+    if (copy_to_user(ubuf, buf, len))
+        return -EFAULT;
+
+    *ppos = len;
+    return len;
+}
+
+static struct proc_ops netmon_proc_ops = {
+    proc_read: read_proc,
+};
+
+static int __init init_netmon(void) {
+    netfilter_ops_in.hook = main_hook;
+    netfilter_ops_in.hooknum = NF_INET_PRE_ROUTING;
+    netfilter_ops_in.pf = PF_INET;
+    netfilter_ops_in.priority = NF_IP_PRI_FIRST;
+
+    nf_register_net_hook(&init_net, &netfilter_ops_in);
+    proc_entry = proc_create("ip_traffic", 0666, NULL, &netmon_proc_ops);
+
+    return 0;
+}
+
+static void __exit exit_netmon(void) {
+    struct rb_node *node;
+    struct ip_node *data;
+
+    nf_unregister_net_hook(&init_net, &netfilter_ops_in);
+    proc_remove(proc_entry);
+
+    for (node = rb_first(&ip_tree); node != NULL; node = rb_next(node)) {
+        data = rb_entry(node, struct ip_node, node);
+        rb_erase(node, &ip_tree);
+        kfree(data);
+    }
+}
+
+module_init(init_netmon);
+module_exit(exit_netmon);
 
 MODULE_LICENSE("GPL");
-
-/* A "hook" is attached to the network interface
- * There are commonly used to implement a firewall or other routing logic */
-struct nf_hook_ops demo_hook;
-
-/* This is the function that will be called when our hook is triggered */
-unsigned int hook_function(void *priv, struct sk_buff *skb, const struct nf_hook_state *state)
-{
-	/* There will be a lot more about this stuff in CS435, but understand this:
-	 * 	1.  There are many Internet protocols, but we use IPv4 for most traffic
-	 * 	2.  Since there are more than one, this kind of function can be used
-	 * 			for protocols other than IPv4.  We know we're using IPv4, so we 
-	 * 			can make this cast safely. */
-	struct iphdr *ip_header = (struct iphdr *)skb_network_header(skb);
-	/* The IP address is a 32-bit unsigned integer, usually interpreted as a 
-	 * series of 4 bytes.  We usually write these in a form like 192.168.18.25,
-	 * but for that, we need to apply a fair bit of logic and convert to a string.
-	 * printk has a special placeholder, %pI4, that can do this for us. */
-	printk("IP address:  %pI4\n", &(ip_header->saddr));
-	/* If you return 0, the network interface will stop working!
-	 * We could choose not to accept the incoming packet, which would be useful
-	 * if we were making a firewall.  Returning NF_ACCEPT all the time will not
-	 * filter incoming traffic in any way it's not already filtered. */
-	return NF_ACCEPT;
-}
-
-int __init netmon_init(void)
-{
-	// The nf_nook_ops structure will store information used for nf_register_net_hook
-	demo_hook.hook = hook_function;       // Function our hook will run
-	demo_hook.hooknum = NF_INET_LOCAL_IN; // Look at incoming trafic
-	demo_hook.pf = AF_INET;               // AF_INET is IPv4.  AF_INET6 is IPv6
-	nf_register_net_hook(&init_net, &demo_hook); // init_net is defined in a header file
-	return 0;
-}
-
-void __exit netmon_exit(void)
-{
-	// If you don't unregister the hook, the OS will crash when the module is removed
-	nf_unregister_net_hook(&init_net, &demo_hook);
-}
-
-module_init(netmon_init);
-module_exit(netmon_exit);
+MODULE_AUTHOR("Logan Hunter Gray <lgray@proton.me>");
+MODULE_DESCRIPTION("Module to track source IPs of incoming packets using Red-Black Trees.");
