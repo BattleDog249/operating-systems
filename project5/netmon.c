@@ -21,29 +21,24 @@ struct ip_node {
 };
 
 static void ip_tree_insert(u32 ip_addr) {
-	printk(KERN_INFO "netmon: ip_tree_insert() called\n");
+	//printk(KERN_INFO "netmon: ip_tree_insert() called\n");
     struct ip_node *data, *tmp;
     struct rb_node **new = &(ip_tree.rb_node), *parent = NULL;
 
     while (*new) {
-        printk(KERN_INFO "netmon: ip_tree_insert() while loop\n");
         parent = *new;
         tmp = container_of(*new, struct ip_node, node);
 
         if (ip_addr < tmp->ip_addr) {
-            printk(KERN_INFO "netmon: ip_tree_insert() ip_addr < tmp->ip_addr\n");
             new = &((*new)->rb_left);
         } else if (ip_addr > tmp->ip_addr) {
-            printk(KERN_INFO "netmon: ip_tree_insert() ip_addr > tmp->ip_addr\n");
             new = &((*new)->rb_right);
         } else {
-            printk(KERN_INFO "netmon: ip_tree_insert() ip_addr == tmp->ip_addr\n");
             tmp->count++;
             return;
         }
     }
 
-    printk(KERN_INFO "netmon: ip_tree_insert() kmalloc\n");
     data = kmalloc(sizeof(struct ip_node), GFP_KERNEL);
     if (!data) {
         printk(KERN_ERR "Unable to allocate IP node.\n");
@@ -58,7 +53,7 @@ static void ip_tree_insert(u32 ip_addr) {
 }
 
 static unsigned int main_hook(void *priv, struct sk_buff *skb, const struct nf_hook_state *state) {
-	printk(KERN_INFO "netmon: main_hook() called\n");
+	//printk(KERN_INFO "netmon: main_hook() called\n");
     struct iphdr *ip;
 
     if (!skb)
@@ -71,7 +66,7 @@ static unsigned int main_hook(void *priv, struct sk_buff *skb, const struct nf_h
 }
 
 static ssize_t read_proc(struct file *file, char __user *ubuf, size_t count, loff_t *ppos) {
-	printk(KERN_INFO "netmon: Reading /proc file\n");
+	//printk(KERN_INFO "netmon: Reading /proc file\n");
     int len = 0;
     char buf[256];
     struct rb_node *node;
@@ -79,7 +74,8 @@ static ssize_t read_proc(struct file *file, char __user *ubuf, size_t count, lof
 
     for (node = rb_first(&ip_tree); node; node = rb_next(node)) {
         data = rb_entry(node, struct ip_node, node);
-        len += snprintf(buf + len, sizeof(buf) - len, "%pI4 - %d\n", &data->ip_addr, data->count);
+        u32 ip_addr_network_byte_order = htonl(data->ip_addr);
+        len += snprintf(buf + len, sizeof(buf) - len, "%pI4 - %d\n", &ip_addr_network_byte_order, data->count);
         if (len > count)
             break;
     }
@@ -101,13 +97,12 @@ static struct proc_ops netmon_proc_ops = {
 static int __init init_netmon(void) {
 	printk(KERN_INFO "netmon: Loading module\n");
     netfilter_ops_in.hook = main_hook;
-    netfilter_ops_in.hooknum = NF_INET_PRE_ROUTING;
-    netfilter_ops_in.pf = PF_INET;
-    netfilter_ops_in.priority = NF_IP_PRI_FIRST;
+    netfilter_ops_in.hooknum = NF_INET_LOCAL_IN;
+    netfilter_ops_in.pf = AF_INET;
 
     nf_register_net_hook(&init_net, &netfilter_ops_in);
     proc_file = proc_create(PROC_FILENAME, 0666, NULL, &netmon_proc_ops);
-	if (!proc_file) return -ENOMEM; // Return error if file creation fails
+	if (!proc_file) return -ENOMEM;
 
     return 0;
 }
@@ -118,7 +113,7 @@ static void __exit exit_netmon(void) {
     struct ip_node *data;
 
     nf_unregister_net_hook(&init_net, &netfilter_ops_in);
-    remove_proc_entry(PROC_FILENAME, NULL); // Remove the /proc file
+    remove_proc_entry(PROC_FILENAME, NULL);
 
     for (node = rb_first(&ip_tree); node != NULL; node = rb_next(node)) {
         data = rb_entry(node, struct ip_node, node);
