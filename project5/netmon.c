@@ -26,19 +26,24 @@ static void ip_tree_insert(u32 ip_addr) {
     struct rb_node **new = &(ip_tree.rb_node), *parent = NULL;
 
     while (*new) {
+        printk(KERN_INFO "netmon: ip_tree_insert() while loop\n");
         parent = *new;
         tmp = container_of(*new, struct ip_node, node);
 
-        if (ip_addr < tmp->ip_addr)
+        if (ip_addr < tmp->ip_addr) {
+            printk(KERN_INFO "netmon: ip_tree_insert() ip_addr < tmp->ip_addr\n");
             new = &((*new)->rb_left);
-        else if (ip_addr > tmp->ip_addr)
+        } else if (ip_addr > tmp->ip_addr) {
+            printk(KERN_INFO "netmon: ip_tree_insert() ip_addr > tmp->ip_addr\n");
             new = &((*new)->rb_right);
-        else {
+        } else {
+            printk(KERN_INFO "netmon: ip_tree_insert() ip_addr == tmp->ip_addr\n");
             tmp->count++;
             return;
         }
     }
 
+    printk(KERN_INFO "netmon: ip_tree_insert() kmalloc\n");
     data = kmalloc(sizeof(struct ip_node), GFP_KERNEL);
     if (!data) {
         printk(KERN_ERR "Unable to allocate IP node.\n");
